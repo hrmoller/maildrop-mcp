@@ -1,0 +1,28 @@
+{
+  "name": "@hrmoller/maildrop-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for maildrop.cc disposable inboxes: list, read, wait for, extract one-time codes from, and delete test mail via the public GraphQL API.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "maildrop-mcp": "dist/index.js" },
+  "main": "dist/index.js",
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "test": "npm run build && node --test dist/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/hrmoller/maildrop-mcp.git" },
+  "keywords": ["mcp", "model-context-protocol", "maildrop", "disposable-email", "otp", "testing", "claude"],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
