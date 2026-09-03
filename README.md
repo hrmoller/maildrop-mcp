@@ -24,17 +24,14 @@ sends.
 
 Requires Node 20 or newer. No API key: maildrop's API is public and unauthenticated.
 
-```sh
-git clone https://github.com/hrmoller/maildrop-mcp.git
-cd maildrop-mcp
-npm install
-npm run build
-```
+The package is published to npm as
+[`@hrmoller/maildrop-mcp`](https://www.npmjs.com/package/@hrmoller/maildrop-mcp), so clients
+can run it with `npx` and nothing needs to be cloned.
 
 ### Claude Code
 
 ```sh
-claude mcp add --scope user maildrop -- node /absolute/path/to/maildrop-mcp/dist/index.js
+claude mcp add --scope user maildrop -- npx -y @hrmoller/maildrop-mcp
 ```
 
 Then allow the tools so they run without prompting, either through `/permissions` or in
@@ -54,11 +51,20 @@ Add a stdio server entry to the client's MCP config:
 {
   "mcpServers": {
     "maildrop": {
-      "command": "node",
-      "args": ["/absolute/path/to/maildrop-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@hrmoller/maildrop-mcp"]
     }
   }
 }
+```
+
+### From source
+
+```sh
+git clone https://github.com/hrmoller/maildrop-mcp.git
+cd maildrop-mcp
+npm install && npm run build
+claude mcp add --scope user maildrop -- node "$PWD/dist/index.js"
 ```
 
 ## Tools
