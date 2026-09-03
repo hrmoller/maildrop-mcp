@@ -8,7 +8,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { Maildrop, MaildropError, extractOtp, formatSummaryLine, htmlToText, normalizeMailbox, parseAfter, rawBody } from "./maildrop.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const MAX_WAIT_S = 240; // keep well inside typical MCP client tool timeouts
 const api = new Maildrop();
 
@@ -31,7 +31,24 @@ const run = async (fn: () => Promise<{ content: { type: "text"; text: string }[]
 	try { return await fn(); } catch (e) { return fail(e); }
 };
 
-const server = new McpServer({ name: "maildrop", version: VERSION });
+/**
+ * Loaded by the client at session start, ahead of any tool definition. Keep it to guidance
+ * that is true for every user of maildrop; caller-specific policy (which mailboxes are yours,
+ * how your test accounts are named) belongs in the client's own configuration.
+ */
+const INSTRUCTIONS = `Read maildrop.cc disposable inboxes through these tools rather than opening maildrop.cc in a browser: the web inbox renders the same data and costs far more per read.
+
+Reading cheaply: call list_inbox first (one line per message, no bodies), then get_message for the one you want. get_message defaults to tag-stripped text — a few hundred characters. Ask for "html" or "raw" only when the markup or the headers are the actual question; they are 15-25 KB.
+
+Waiting: use wait_for_message or get_otp instead of polling list_inbox yourself. Capture a timestamp before triggering the mail and pass it as \`after\`, so an older message does not match. maildrop asks that a mailbox not be polled more than once every 10 seconds, and these tools honour that.
+
+Delivery delays: a first mail from a sending server maildrop has not seen is greylisted and can take about 15 minutes. If a wait times out, report that rather than retrying in a tight loop.
+
+Limits: a mailbox holds 10 messages (oldest evicted) and is deleted after 24 hours of inactivity. A missing message may have been evicted rather than never sent.
+
+Privacy: every maildrop mailbox is world-readable to anyone who knows the name, so treat it as a public test surface — never send real personal data there, and read only mailboxes belonging to the account under test. One-time codes are short-lived secrets: use them, do not copy them into tickets, commits, or documentation.`;
+
+const server = new McpServer({ name: "maildrop", version: VERSION }, { instructions: INSTRUCTIONS });
 
 server.registerTool("list_inbox", {
 	title: "List a maildrop inbox",

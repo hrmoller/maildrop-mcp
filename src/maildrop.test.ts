@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Maildrop, MaildropError, extractOtp, htmlToText, matches, normalizeMailbox, parseAfter, rawBody } from "./maildrop.js";
+import { Maildrop, MaildropError, OTP_CUE_WORDS, extractOtp, htmlToText, matches, normalizeMailbox, parseAfter, rawBody } from "./maildrop.js";
 
 test("normalizeMailbox strips the maildrop.cc suffix and rejects other domains", () => {
 	assert.equal(normalizeMailbox("usual_88081"), "usual_88081");
@@ -20,6 +20,22 @@ test("htmlToText drops style/script/comments, keeps text, decodes entities", () 
 	assert.ok(!t.includes("color:red") && !t.includes("x()") && !t.includes("hidden"));
 });
 
+test("extractOtp finds codes after cue words in the languages our test mail uses", () => {
+	const cases: [string, string][] = [
+		["Din kode: 12345678", "12345678"],                       // da
+		["Din engangskode er 445566", "445566"],                  // da
+		["Your verification code is 482913", "482913"],           // en
+		["Din kod är 112233", "112233"],                          // sv
+		["Ihr Bestätigungscode: 998877", "998877"],               // de
+		["Votre code de vérification : 246810", "246810"],        // fr
+		["Su código de verificación es 135790", "135790"],        // es
+		["Il tuo codice è 864209", "864209"],                     // it
+		["Vahvistuskoodi: 371942", "371942"],                     // fi
+		["Your OTP is 553311", "553311"],                         // en, cue at start
+	];
+	for (const [text, want] of cases) assert.equal(extractOtp(text), want, text);
+});
+
 test("extractOtp prefers the code after a cue word and skips years", () => {
 	assert.equal(extractOtp("Din kode: 12345678\n© 2026 Tivoli"), "12345678");
 	assert.equal(extractOtp("Your verification code is 482913. Expires 2026-01-01"), "482913");
@@ -28,6 +44,10 @@ test("extractOtp prefers the code after a cue word and skips years", () => {
 	assert.equal(extractOtp("Order #99887766 confirmed", 6), null);
 	assert.equal(extractOtp("Order #99887766 confirmed"), "99887766");
 	assert.equal(extractOtp("no digits here"), null);
+});
+
+test("every OTP cue word compiles as a regex", () => {
+	for (const w of OTP_CUE_WORDS) assert.doesNotThrow(() => new RegExp(w), `bad cue word: ${w}`);
 });
 
 test("parseAfter handles ISO, now, seconds, default", () => {

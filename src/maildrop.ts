@@ -114,14 +114,42 @@ export function rawBody(raw: string): string {
 }
 
 /**
- * Prefer a code that follows a cue word (Danish/English); else the first standalone digit run.
- * With `digits` undefined any 4-8 digit run qualifies (Tivoli's mail uses 8, many services 6).
+ * Words that introduce a one-time code, across the languages our test mail arrives in:
+ * en, da/no, sv, fi, de, fr, es, pt, it, nl. Matched case-insensitively.
+ */
+export const OTP_CUE_WORDS = [
+	"otp",
+	"pin",
+	"passcode",
+	"token",
+	"code", // en, fr, nl, de
+	"kode", // da, no
+	"kod", // sv
+	"koodi", // fi
+	"codice", // it
+	"c[oó]digo", // es, pt
+	"clave", // es
+	"contrase\\w*", // es
+	"verif\\w*", // en, fr, es
+	"verificaci[oó]n",
+	"adgangs\\w*", // da
+	"engangs\\w*", // da, no
+	"eng\u00e5ngs\\w*", // sv
+	"einmal\\w*", // de
+	"best[a\u00e4]tigungs\\w*", // de
+	"bekr[a\u00e6\u00e4]ft\\w*", // da, sv
+];
+
+/**
+ * Prefer a code that follows a cue word (see OTP_CUE_WORDS); else the first standalone
+ * digit run. With `digits` undefined any 4-8 digit run qualifies (Tivoli's mail uses 8,
+ * many services 6).
  */
 export function extractOtp(text: string, digits?: number): string | null {
 	const quant = digits ? `{${digits}}` : "{4,8}";
-	const cue = new RegExp(`(kode|code|pin|verif\\w*|adgangs\\w*|otp)\\W{0,40}?(?<!\\d)(\\d${quant})(?!\\d)`, "is");
+	const cue = new RegExp(`(?:${OTP_CUE_WORDS.join("|")})\\W{0,40}?(?<!\\d)(\\d${quant})(?!\\d)`, "is");
 	const m = cue.exec(text);
-	if (m) return m[2];
+	if (m) return m[1];
 	const all = new RegExp(`(?<!\\d)(\\d${quant})(?!\\d)`, "g");
 	for (const hit of text.matchAll(all)) {
 		const c = hit[1];

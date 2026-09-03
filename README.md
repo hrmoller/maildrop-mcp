@@ -129,6 +129,24 @@ Verified against the live API and [docs.maildrop.cc](https://docs.maildrop.cc) o
 - **The server only talks to `api.maildrop.cc`.** It has no other network access, no
   filesystem access, and no configuration.
 
+## Releasing
+
+Merging to `main` publishes the package when `package.json` carries a version that is not on
+the registry yet; a merge that does not bump the version runs the tests and stops. The
+workflow is `.github/workflows/release.yml`:
+
+1. Tests run on Node 20, 22 and 24.
+2. If they pass and the version is new, `npm publish` runs and the commit is tagged `vX.Y.Z`
+   with a GitHub release.
+
+So a release is: bump `version` in `package.json`, add a `CHANGELOG.md` entry, merge to
+`main`.
+
+Publishing authenticates with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers)
+over GitHub Actions OIDC, so no npm token is stored in the repository, and npm attaches
+provenance to each published version automatically. The trusted publisher configured on
+npmjs.com must name the workflow file `release.yml`.
+
 ## Development
 
 ```sh
@@ -139,7 +157,8 @@ npm run smoke -- some_mailbox
 ```
 
 Layout: `src/maildrop.ts` holds the API client and pure helpers (HTML-to-text, code
-extraction, filters); `src/index.ts` registers the tools. Tests live next to the code and run
+extraction, filters); `src/index.ts` registers the tools and carries the server instructions
+that clients load at session start. Tests live next to the code and run
 against the compiled `dist/`.
 
 ## License

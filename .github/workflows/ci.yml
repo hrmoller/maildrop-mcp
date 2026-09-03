@@ -1,7 +1,7 @@
+# Pull-request checks. Pushes to main are covered by release.yml, which runs the same
+# matrix before it publishes.
 name: CI
 on:
-  push:
-    branches: [main]
   pull_request:
 jobs:
   test:

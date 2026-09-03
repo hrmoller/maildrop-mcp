@@ -1,6 +1,6 @@
 {
   "name": "@hrmoller/maildrop-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for maildrop.cc disposable inboxes: list, read, wait for, extract one-time codes from, and delete test mail via the public GraphQL API.",
   "license": "MIT",
   "type": "module",
